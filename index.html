@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eternal Love Universe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            background: linear-gradient(to bottom, #2c003e, #4b0082);
+            color: #ffffff;
+            font-family: 'serif';
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease-out;
+        }
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .heart-animation {
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .game-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .game-option {
+            background: #ff69b4;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .game-option:hover {
+            transform: scale(1.05);
+        }
+        .game-option.wrong {
+            animation: shake 0.5s;
+            background: #ff0000;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+        .treasure-message {
+            position: absolute;
+            background: rgba(255, 105, 180, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            display: none;
+            z-index: 10;
+            color: #fff;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <section id="intro" class="section">
+        <h1 class="text-6xl font-bold text-pink-400 mb-4 typewriter">My Eternal Love</h1>
+        <p class="text-2xl max-w-2xl text-center">You are the star that lights my universe. Explore and find my surprises! <span class="heart-animation">❤️</span></p>
+    </section>
+    <section id="timeline" class="section">
+        <h2 class="text-4xl font-bold text-purple-300 mb-8">Our Love Timeline</h2>
+        <div class="timeline max-w-3xl w-full">
+            <div class="event mb-8 text-left">
+                <h3 class="text-2xl text-pink-300">The Day We Met</h3>
+                <p>Remember that magical moment? It changed everything.</p>
+            </div>
+            <div class="event mb-8 text-right">
+                <h3 class="text-2xl text-pink-300">Our First Date</h3>
+                <p>Laughter, sparks, and the beginning of us.</p>
+            </div>
+            <div class="event mb-8 text-left">
+                <h3 class="text-2xl text-pink-300">Adventures Together</h3>
+                <p>From trips to eating Together, every memory is precious.</p>
+            </div>
+        </div>
+    </section>
+    <section id="game" class="section">
+        <h2 class="text-4xl font-bold text-purple-300 mb-8">Why I Love You - Game</h2>
+        <p class="mb-4">Select the qualities that make you amazing!</p>
+        <div class="game-options">
+            <div class="game-option" onclick="selectQuality(this, true)">Your Smile</div>
+            <div class="game-option" onclick="selectQuality(this, true)">Your Kindness</div>
+            <div class="game-option" onclick="selectQuality(this, false)">Grumpy Mornings</div>
+            <div class="game-option" onclick="selectQuality(this, true)">Your Laugh</div>
+            <div class="game-option" onclick="selectQuality(this, false)">Stealing Blankets</div>
+        </div>
+        <p id="gameFeedback" class="mt-4 text-xl"></p>
+    </section>
+    
+    <!-- NEW GAME -->
+    <section id="love-secret" class="section">
+        <h2 class="text-4xl font-bold text-purple-300 mb-8">Guess the Love Secret 💕</h2>
+        <p class="mb-4">One of these hearts hides a secret message for you. Can you find it?</p>
+        <div class="flex gap-6">
+            <div onclick="revealSecret(this, true)" class="cursor-pointer text-6xl hover:scale-125 transition">❤️</div>
+            <div onclick="revealSecret(this, false)" class="cursor-pointer text-6xl hover:scale-125 transition">💜</div>
+            <div onclick="revealSecret(this, false)" class="cursor-pointer text-6xl hover:scale-125 transition">💙</div>
+        </div>
+        <p id="secretMessage" class="mt-6 text-xl text-pink-300"></p>
+    </section>
+    
+    <section id="proposal" class="section">
+        <h2 class="text-4xl font-bold text-purple-300 mb-8">Will You Be Mine Forever?</h2>
+        <button onclick="sayYes()" class="bg-green-500 text-white px-8 py-4 rounded-full hover:bg-green-600 transition mr-4">Yes!</button>
+        <button id="noButton" onmouseover="moveNoButton()" class="bg-red-500 text-white px-8 py-4 rounded-full hover:bg-red-600 transition">No</button>
+    </section>
+    <footer class="py-8 text-center">
+        <p class="text-lg">Crafted with infinite love for you. <span class="heart-animation">❤️</span></p>
+    </footer>
+    <div id="treasureMessage" class="treasure-message"></div>
+    <script>
+        // 3D Starfield Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bgCanvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 5;
+
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.01 });
+        const positions = [];
+        const treasureStars = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            positions.push(x, y, z);
+            if (Math.random() < 0.0005) {
+                treasureStars.push({ x, y, z, revealed: false });
+            }
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            stars.rotation.y += 0.0002;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Scroll Animations
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        sections.forEach(section => observer.observe(section));
+
+        // Game 1 Logic
+        let correctSelections = 0;
+        function selectQuality(el, isCorrect) {
+            if (isCorrect) {
+                el.style.background = '#00ff00';
+                correctSelections++;
+                if (correctSelections === 3) {
+                    document.getElementById('gameFeedback').textContent = 'You got them all! I love you for so much more!';
+                    confetti();
+                }
+            } else {
+                el.classList.add('wrong');
+                setTimeout(() => el.classList.remove('wrong'), 500);
+            }
+        }
+
+        // Game 2 Logic
+        function revealSecret(el, isCorrect) {
+            const msg = document.getElementById('secretMessage');
+            if (isCorrect) {
+                msg.textContent = "You found it! 💖 My secret is… I’m madly in love with you forever! 🌹✨";
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    startVelocity: 40,
+                    colors: ['#ff69b4', '#ff1493', '#ffd700'],
+                    origin: { y: 0.8 }
+                });
+            } else {
+                msg.textContent = "Nope 😜 try again, love!";
+            }
+        }
+
+        // Playful No Button
+        function moveNoButton() {
+            const noBtn = document.getElementById('noButton');
+            const x = Math.random() * 200 - 100;
+            const y = Math.random() * 200 - 100;
+            gsap.to(noBtn, { x, y, duration: 0.5 });
+        }
+
+        function sayYes() {
+            alert('Yay! I knew you would! 💕');
+            confetti({
+                particleCount: 200,
+                spread: 90,
+                startVelocity: 50,
+                decay: 0.9,
+                scalar: 1.2,
+                colors: ['#ff69b4', '#ff4500', '#ffd700', '#00ff7f', '#00b7eb'],
+                origin: { y: 0.8 }
+            });
+            let fireworksInterval = setInterval(() => {
+                confetti({
+                    particleCount: 100,
+                    spread: 80,
+                    startVelocity: 30,
+                    decay: 0.9,
+                    scalar: 1.0,
+                    colors: ['#ff69b4', '#ff4500', '#ffd700'],
+                    origin: { x: Math.random(), y: 0.8 }
+                });
+            }, 500);
+            setTimeout(() => clearInterval(fireworksInterval), 5000);
+        }
+
+        // Resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
